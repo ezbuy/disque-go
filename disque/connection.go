@@ -190,22 +190,43 @@ func (d *Disque) Fetch(queueName string, timeout time.Duration) (job *Job, err e
 
 // FetchMultiple will retrieve multiple jobs from a Disque queue.
 func (d *Disque) FetchMultiple(queueName string, count int, timeout time.Duration) (jobs []*Job, err error) {
-	return d.fetch(queueName, count, timeout)
+	jobs, err = d.fetch(
+		timeoutOption{timeout},
+		countOption{count},
+		withCounterOption{},
+		fromOption{queueName},
+	)
+	if err != nil {
+		return
+	}
+	d.count += count
+	return
 }
 
 // FetchMultipleNoHang will retrieve multiple jobs from a Disque queue.
 // But it will work with NOHANG option.
 // Check disque doc for more details: https://github.com/antirez/disque#getjob-nohang-timeout-ms-timeout-count-count-withcounters-from-queue1-queue2--queuen
 func (d *Disque) FetchMultipleNoHang(queueName string, count int, timeout time.Duration) (jobs []*Job, err error) {
-	return d.fetch(queueName, count, timeout, noHangOption{})
+	jobs, err = d.fetch(
+		noHangOption{},
+		timeoutOption{timeout},
+		countOption{count},
+		withCounterOption{},
+		fromOption{queueName},
+	)
+	if err != nil {
+		return
+	}
+	d.count += count
+	return
 }
 
-func (d *Disque) fetch(queueName string, count int, timeout time.Duration, opts ...fetchOption) (jobs []*Job, err error) {
+func (d *Disque) fetch(opts ...fetchOption) (jobs []*Job, err error) {
 	jobs = make([]*Job, 0)
 	if err = d.pickClient(); err == nil {
 
 		args := redis.Args{}
-		for _, opt := range withFetchOption(queueName, timeout, count, opts...) {
+		for _, opt := range withFetchOption(opts...) {
 			args = append(args, opt.Name())
 			if len(opt.Args()) == 0 {
 				continue
@@ -236,7 +257,6 @@ func (d *Disque) fetch(queueName string, count int, timeout time.Duration, opts 
 			}
 		}
 	}
-	d.count += count
 	return jobs, err
 }
 
