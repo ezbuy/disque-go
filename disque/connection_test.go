@@ -432,7 +432,7 @@ func (s *DisqueSuite) TestFetchWithNoJobsWithNoHang() {
 	go func() {
 		for {
 			select {
-			case t := <-ticker.C:
+			case <-ticker.C:
 				rtChan <- false
 				return
 			case <-jobChan:
@@ -449,7 +449,6 @@ func (s *DisqueSuite) TestFetchWithNoJobsWithNoHang() {
 	jobChan <- true
 	ticker.Stop()
 	<-rtChan
-	return
 }
 
 func (s *DisqueSuite) TestFetchWithMultipleJobs() {
