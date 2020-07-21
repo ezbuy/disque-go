@@ -2,6 +2,8 @@
 
 [![codecov](https://codecov.io/gh/ezbuy/disque-go/branch/master/graph/badge.svg)](https://codecov.io/gh/ezbuy/disque-go)
 
+[![github action](https://github.com/ezbuy/disque-go/workflows/disque-go/badge.svg)](https://github.com/ezbuy/disque-go/actions)
+
 **NOTICE**: This repo is forked from [zencoder/disque-go](github.com/zencoder/disque-go), and move the disque with Go forward.
 
 [Go](https://www.golang.org) client for the [Disque server](https://github.com/antirez/disque)
