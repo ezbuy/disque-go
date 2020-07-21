@@ -1,6 +1,8 @@
 package disque
 
 import (
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -21,15 +23,22 @@ func (s *DisqueSuite) SetupTest() {
 func (s *DisqueSuite) SetupSuite() {
 }
 
+var disqueHost = func() string {
+	if os.Getenv("DISQUE_HOST") == "" && os.Getenv("DISQUE_PORT") == "" {
+		return "127.0.0.1:7711"
+	}
+	return fmt.Sprintf("%s:%s", os.Getenv("DISQUE_HOST"), os.Getenv("DISQUE_PORT"))
+}()
+
 func (s *DisqueSuite) TestInitAndCloseWithOneNode() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 
 	d.Initialize()
 }
 
 func (s *DisqueSuite) TestInitWithOneNode() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 
 	d.Initialize()
@@ -37,7 +46,7 @@ func (s *DisqueSuite) TestInitWithOneNode() {
 }
 
 func (s *DisqueSuite) TestInitWithMultipleHostsOneNode() {
-	hosts := []string{"127.0.0.1:7711", "127.0.0.1:8800"}
+	hosts := []string{disqueHost, "127.0.0.1:8800"}
 	d := NewDisque(hosts, 1000)
 
 	d.Initialize()
@@ -87,11 +96,11 @@ func (s *DisqueSuite) TestPickClientWithEmptyStats() {
 }
 
 func (s *DisqueSuite) TestPickClientWithTwoHostStatsDifferentOptimalHost() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	d.nodes["host1"] = "example.com:7711"
-	d.nodes["host2"] = "127.0.0.1:7711"
+	d.nodes["host2"] = disqueHost
 	d.stats["host1"] = 500
 	d.stats["host2"] = 600
 	d.prefix = "host1"
@@ -104,10 +113,10 @@ func (s *DisqueSuite) TestPickClientWithTwoHostStatsDifferentOptimalHost() {
 }
 
 func (s *DisqueSuite) TestPickClientWithTwoHostStatsSameOptimalHost() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.nodes["host1"] = "example.com:7711"
-	d.nodes["host2"] = "127.0.0.1:7711"
+	d.nodes["host2"] = disqueHost
 	d.stats["host1"] = 600
 	d.stats["host2"] = 500
 	d.prefix = "host1"
@@ -120,7 +129,7 @@ func (s *DisqueSuite) TestPickClientWithTwoHostStatsSameOptimalHost() {
 }
 
 func (s *DisqueSuite) TestPickClientWithTwoHostStatsUnrecognizedOptimalHost() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.nodes["host1"] = "example.com:7711"
 	d.stats["host1"] = 500
@@ -135,7 +144,7 @@ func (s *DisqueSuite) TestPickClientWithTwoHostStatsUnrecognizedOptimalHost() {
 }
 
 func (s *DisqueSuite) TestPickClientWithTwoHostStatsUnreachableOptimalHost() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.nodes["host1"] = "example.com:7711"
 	d.nodes["host2"] = "127.0.0.1:7722"
@@ -153,7 +162,7 @@ func (s *DisqueSuite) TestPickClientWithTwoHostStatsUnreachableOptimalHost() {
 }
 
 func (s *DisqueSuite) TestPushWithEmptyOptions() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	options := make(map[string]string)
@@ -166,7 +175,7 @@ func (s *DisqueSuite) TestPushWithEmptyOptions() {
 }
 
 func (s *DisqueSuite) TestPushWithOptions() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	options := make(map[string]string)
@@ -181,7 +190,7 @@ func (s *DisqueSuite) TestPushWithOptions() {
 }
 
 func (s *DisqueSuite) TestPushWithOptionsOnClosedConnection() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	d.Close()
@@ -198,7 +207,7 @@ func (s *DisqueSuite) TestPushWithOptionsOnClosedConnection() {
 }
 
 func (s *DisqueSuite) TestGetJobDetailsWithInvalidJobID() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -208,7 +217,7 @@ func (s *DisqueSuite) TestGetJobDetailsWithInvalidJobID() {
 }
 
 func (s *DisqueSuite) TestGetJobDetailsWithAckdJobID() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -232,7 +241,7 @@ func (s *DisqueSuite) TestGetJobDetailsWithAckdJobID() {
 }
 
 func (s *DisqueSuite) TestGetJobDetails() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -254,7 +263,7 @@ func (s *DisqueSuite) TestGetJobDetails() {
 }
 
 func (s *DisqueSuite) TestPush() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -266,7 +275,7 @@ func (s *DisqueSuite) TestPush() {
 }
 
 func (s *DisqueSuite) TestPushToClosedConnection() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	d.Close()
@@ -277,7 +286,7 @@ func (s *DisqueSuite) TestPushToClosedConnection() {
 }
 
 func (s *DisqueSuite) TestPushToUnreachableNode() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	d.Close()
@@ -289,7 +298,7 @@ func (s *DisqueSuite) TestPushToUnreachableNode() {
 }
 
 func (s *DisqueSuite) TestQueueLength() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue3", "asdf", time.Second)
@@ -307,7 +316,7 @@ func (s *DisqueSuite) TestQueueLength() {
 }
 
 func (s *DisqueSuite) TestQueueLengthOnClosedConnection() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue3", "asdf", time.Second)
@@ -326,7 +335,7 @@ func (s *DisqueSuite) TestQueueLengthOnClosedConnection() {
 }
 
 func (s *DisqueSuite) TestFetch() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue4", "asdf", time.Second)
@@ -351,7 +360,7 @@ func (s *DisqueSuite) TestFetch() {
 }
 
 func (s *DisqueSuite) TestFetchAndNack() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue6", "asdf", time.Second)
@@ -405,7 +414,7 @@ func (s *DisqueSuite) TestFetchAndNack() {
 }
 
 func (s *DisqueSuite) TestFetchWithNoJobs() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue4", "asdf", time.Second)
@@ -419,7 +428,7 @@ func (s *DisqueSuite) TestFetchWithNoJobs() {
 }
 
 func (s *DisqueSuite) TestFetchWithNoJobsWithNoHang() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue4", "asdf", time.Second)
@@ -452,7 +461,7 @@ func (s *DisqueSuite) TestFetchWithNoJobsWithNoHang() {
 }
 
 func (s *DisqueSuite) TestFetchWithMultipleJobs() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue5", "msg1", time.Second)
@@ -471,7 +480,7 @@ func (s *DisqueSuite) TestFetchWithMultipleJobs() {
 }
 
 func (s *DisqueSuite) TestFetchMultipleWithNoJobs() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue4", "asdf", time.Second)
@@ -486,7 +495,7 @@ func (s *DisqueSuite) TestFetchMultipleWithNoJobs() {
 }
 
 func (s *DisqueSuite) TestAck() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	_, err := d.Push("queue2", "asdf", time.Second)
@@ -500,7 +509,7 @@ func (s *DisqueSuite) TestAck() {
 }
 
 func (s *DisqueSuite) TestAckWithMalformedJobID() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -509,7 +518,7 @@ func (s *DisqueSuite) TestAckWithMalformedJobID() {
 }
 
 func (s *DisqueSuite) TestDeleteJob() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -527,7 +536,7 @@ func (s *DisqueSuite) TestDeleteJob() {
 }
 
 func (s *DisqueSuite) TestDeleteJobWithUnknownJobID() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -536,7 +545,7 @@ func (s *DisqueSuite) TestDeleteJobWithUnknownJobID() {
 }
 
 func BenchmarkPush(b *testing.B) {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 
@@ -547,7 +556,7 @@ func BenchmarkPush(b *testing.B) {
 }
 
 func BenchmarkPushAsync(b *testing.B) {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	options := make(map[string]string)
@@ -560,7 +569,7 @@ func BenchmarkPushAsync(b *testing.B) {
 }
 
 func BenchmarkFetch(b *testing.B) {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 	for i := 0; i < b.N; i++ {
@@ -574,7 +583,7 @@ func BenchmarkFetch(b *testing.B) {
 }
 
 func BenchmarkGetJobDetails(b *testing.B) {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	d := NewDisque(hosts, 1000)
 	d.Initialize()
 

@@ -23,7 +23,7 @@ func (s *DisquePoolSuite) SetupSuite() {
 }
 
 func (s *DisquePoolSuite) TestWithPoolOfOne() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	p := NewPool(hosts, 1000, 1, 1, time.Hour)
 
 	c, err := p.Get(context.Background())
@@ -40,7 +40,7 @@ func (s *DisquePoolSuite) TestWithPoolOfOne() {
 }
 
 func (s *DisquePoolSuite) TestPutNil() {
-	hosts := []string{"127.0.0.1:7711"}
+	hosts := []string{disqueHost}
 	p := NewPool(hosts, 1000, 1, 1, time.Hour)
 
 	c, err := p.Get(context.Background())

@@ -30,6 +30,9 @@ jobs:
       - name: Test
         run: |
           make test
+        env:
+          DISQUE_HOST: disque
+          DISQUE_PORT: ${{ job.services.disque.ports[7711] }}
       - name: Code Coverage
         uses: codecov/codecov-action@v1
         with:
