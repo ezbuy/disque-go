@@ -1,7 +1,6 @@
 package disque
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -339,8 +338,8 @@ func (s *DisqueSuite) TestFetch() {
 	s.NotNil(job)
 	s.Equal("queue4", job.QueueName)
 	s.Equal("asdf", job.Message)
-	s.Equal(int64(0), job.Nacks)
-	s.Equal(int64(0), job.AdditionalDeliveries)
+	s.EqualValues(0, job.Nacks)
+	s.EqualValues(0, job.AdditionalDeliveries)
 	s.Equal(job.JobID[2:10], d.prefix)
 	s.Equal(1, d.stats[d.prefix])
 	s.Equal(1, d.count)
@@ -348,7 +347,7 @@ func (s *DisqueSuite) TestFetch() {
 	// verify the NACK count in job details
 	var jobDetails *JobDetails
 	jobDetails, err = d.GetJobDetails(job.JobID)
-	s.Equal(int64(0), jobDetails.Nacks)
+	s.EqualValues(0, jobDetails.Nacks)
 }
 
 func (s *DisqueSuite) TestFetchAndNack() {
@@ -363,7 +362,7 @@ func (s *DisqueSuite) TestFetchAndNack() {
 	job, err := d.Fetch("queue6", time.Second)
 	s.Nil(err)
 	s.NotNil(job)
-	s.Equal(int64(0), job.Nacks)
+	s.EqualValues(0, job.Nacks)
 
 	// send a NACK for the job, putting it back on the queue
 	err = d.Nack(job.JobID)
@@ -377,12 +376,12 @@ func (s *DisqueSuite) TestFetchAndNack() {
 	s.Equal("asdf", job.Message)
 	s.Equal(job.JobID[2:10], d.prefix)
 	s.Equal(2, d.stats[d.prefix])
-	s.Equal(int64(1), job.Nacks)
+	s.EqualValues(1, job.Nacks)
 
 	// verify the NACK count in job details
 	var jobDetails *JobDetails
 	jobDetails, err = d.GetJobDetails(job.JobID)
-	s.Equal(int64(1), jobDetails.Nacks)
+	s.EqualValues(1, jobDetails.Nacks)
 
 	// send a NACK for the job, putting it back on the queue
 	err = d.Nack(job.JobID)
@@ -434,11 +433,9 @@ func (s *DisqueSuite) TestFetchWithNoJobsWithNoHang() {
 		for {
 			select {
 			case t := <-ticker.C:
-				log.Printf("ticker at %v", t.Second())
 				rtChan <- false
 				return
 			case <-jobChan:
-				log.Println("Sent rtChan")
 				rtChan <- true
 				return
 			}
@@ -446,18 +443,13 @@ func (s *DisqueSuite) TestFetchWithNoJobsWithNoHang() {
 	}()
 
 	job, err := d.FetchMultipleNoHang("emptyqueue", 1, 3*time.Second)
-	log.Println("Sent JobChan")
 	s.Nil(err)
 	// job is the empty job, but not nil
 	s.NotNil(job)
 	jobChan <- true
 	ticker.Stop()
-	r := <-rtChan
-	if !r {
-		return
-	} else {
-		return
-	}
+	<-rtChan
+	return
 }
 
 func (s *DisqueSuite) TestFetchWithMultipleJobs() {
